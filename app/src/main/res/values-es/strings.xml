@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="new_game">Nuevo juego</string>
+    <string name="reset_win_count">Reiniciar contador de victorias</string>
+    <string name="tie">¡EMPATE!</string>
+    <string name="turn_part1">"Es el turno de "</string>
+    <string name="turn_part2">.</string>
+    <string name="winner_part2">!</string>
+    <string name="winner_part1">¡Ha ganado</string>
+    <string name="red">Rojo</string>
+    <string name="yellow">Amarillo</string>
+    <string name="number_of_won_games_part1">" ha ganado "</string>
+    <string name="number_of_won_games_part2">" juegos."</string>
+</resources>
