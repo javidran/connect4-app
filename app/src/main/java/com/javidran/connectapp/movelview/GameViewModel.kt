@@ -2,21 +2,23 @@ package com.javidran.connectapp.movelview
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.javidran.connectapp.Game
-import com.javidran.connectapp.enums.Disk
+import com.javidran.connectapp.datasource.Game
 import com.javidran.connectapp.enums.Player
 
 class GameViewModel : ViewModel() {
 
-    var game = Game()
-        private set
+    private var game = Game()
+    private var addingDiskFlag = false
 
     var grid = mutableStateOf(
-        Array(Game.NumberOfColumns) { Array(Game.NumberOfRows) { Disk.Empty } }
+        game.grid.copyOf()
     )
         private set
 
     var winner = mutableStateOf(Player.None)
+        private set
+
+    var winningCombination = mutableStateOf(emptyList<Pair<Int, Int>>())
         private set
 
     var turn = mutableStateOf(Player.Red)
@@ -26,14 +28,13 @@ class GameViewModel : ViewModel() {
 
     val tie = mutableStateOf(false)
 
-    private var addingDiskFlag = false
-
     fun addDisk(column: Int) {
-        if(!addingDiskFlag) {
+        if (!addingDiskFlag) {
             addingDiskFlag = true
             game.addDisk(column = column)
             game.winner?.let {
                 winner.value = it
+                winningCombination.value = game.winningCombination
                 if (it == Player.Red) {
                     redWins.value++
                 } else {

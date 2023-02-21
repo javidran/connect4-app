@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">ConnectApp</string>
+    <string name="app_name" translatable="false">ConnectApp</string>
+    <string name="new_game">New game</string>
+    <string name="reset_win_count">Reset win count</string>
+    <string name="tie">IT\'S A TIE!</string>
+    <string name="turn_part1">"It's "</string>
+    <string name="turn_part2">\'s turn.</string>
+    <string name="winner_part2">" WON!"</string>
+    <string name="winner_part1" />
+    <string name="red">Red</string>
+    <string name="yellow">Yellow</string>
+    <string name="number_of_won_games_part1">" won "</string>
+    <string name="number_of_won_games_part2">" games."</string>
 </resources>
