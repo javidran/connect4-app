@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -154,9 +155,9 @@ fun Board(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.padding(10.dp)
+        modifier = modifier.padding(10.dp).height(IntrinsicSize.Min)
     ){
-        Row(Modifier.height(IntrinsicSize.Min)) {
+        Row {
             grid.forEachIndexed { index, arrayOfDisks ->
                 BoardColumn(
                     diskArray = arrayOfDisks,
@@ -164,12 +165,12 @@ fun Board(
                     onColumnPressed = onColumnPressed,
                     winners = winners
                         .filter { pair -> pair.first == index }
-                        .map { pair -> pair.second },
-                    modifier = Modifier.wrapContentHeight()
+                        .map { pair -> pair.second }
                 )
             }
+            DiskSpacer(isVertical = true)
         }
-        BoardImage(Modifier.fillMaxWidth().wrapContentHeight())
+        BoardImage()
     }
 
 }
@@ -183,14 +184,19 @@ fun BoardColumn(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier.wrapContentHeight().clickable { onColumnPressed(columnNumber) }
+        modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable { onColumnPressed(columnNumber) }
     ) {
         for (i in diskArray.indices.reversed()) {
             Disk(
                 disk = diskArray[i],
-                winner = winners.contains(i),
-                modifier = Modifier.fillMaxWidth().weight(1.0f)
+                winner = winners.contains(i)
             )
+            if(i == 0) {
+                DiskSpacer()
+            }
         }
     }
 }
@@ -224,8 +230,11 @@ fun Disk(disk: Disk, winner: Boolean, modifier: Modifier = Modifier) {
 fun DiskImage(@DrawableRes id: Int, modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(id = id),
+        contentScale = ContentScale.Fit,
         contentDescription = null,
         modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
     )
 }
 
@@ -235,6 +244,21 @@ fun BoardImage(modifier: Modifier = Modifier) {
         painter = painterResource(id = R.drawable.board),
         contentDescription = null,
         modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    )
+}
+
+@Composable
+fun DiskSpacer(modifier: Modifier = Modifier, isVertical: Boolean = false,) {
+    val id = if(isVertical) R.drawable.disk_column_spacer else R.drawable.disk_row_spacer
+    Image(
+        painter = painterResource(id),
+        contentScale = ContentScale.Fit,
+        contentDescription = null,
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
     )
 }
 
@@ -252,40 +276,34 @@ fun DiskImagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun RedDiskPreview() {
+fun DisksPreview() {
     ConnectAppTheme {
-        Row {
+        Column {
             Disk(Disk.Red, false, modifier = Modifier.size(50.dp))
             Disk(Disk.Red, true, modifier = Modifier.size(50.dp))
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun YellowDiskPreview() {
-    ConnectAppTheme {
-        Row {
+            Disk(Disk.Empty, false, modifier = Modifier.size(50.dp))
+            Disk(Disk.Empty, true, modifier = Modifier.size(50.dp))
             Disk(Disk.Yellow, false, modifier = Modifier.size(50.dp))
             Disk(Disk.Yellow, true, modifier = Modifier.size(50.dp))
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun DiskColumnPreview() {
     val array = arrayOf(Disk.Red, Disk.Red, Disk.Yellow, Disk.Red, Disk.Empty, Disk.Empty)
     ConnectAppTheme {
-        BoardColumn(
-            diskArray = array,
-            columnNumber = 0,
-            onColumnPressed = { },
-            winners = emptyList(),
-            modifier = Modifier.width(50.dp).wrapContentHeight()
-        )
+        Box(Modifier.width(50.dp)) {
+            BoardColumn(
+                diskArray = array,
+                columnNumber = 0,
+                onColumnPressed = { },
+                winners = emptyList()
+            )
+        }
     }
 }
 
@@ -302,11 +320,13 @@ fun GridPreview() {
     val grid = arrayOf(array1, array2, array3, array4, array5, array6, array7)
 
     ConnectAppTheme {
-        Board(
-            grid = grid,
-            onColumnPressed = { },
-            winners = emptyList(),
-            modifier = Modifier.fillMaxWidth()
-        )
+        Box(Modifier.fillMaxSize()) {
+            Board(
+                grid = grid,
+                onColumnPressed = { },
+                winners = emptyList(),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
