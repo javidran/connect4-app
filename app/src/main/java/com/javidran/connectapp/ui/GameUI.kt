@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.javidran.connectapp.R
 import com.javidran.connectapp.enums.Disk
 import com.javidran.connectapp.enums.Player
@@ -154,26 +156,59 @@ fun Board(
     winners: List<Pair<Int, Int>>,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier.padding(10.dp).height(IntrinsicSize.Min)
-    ){
-        Row {
-            grid.forEachIndexed { index, arrayOfDisks ->
-                BoardColumn(
-                    diskArray = arrayOfDisks,
-                    columnNumber = index,
-                    onColumnPressed = onColumnPressed,
-                    winners = winners
-                        .filter { pair -> pair.first == index }
-                        .map { pair -> pair.second }
-                )
-            }
-            DiskSpacer(isVertical = true)
-        }
-        BoardImage()
-    }
+    ConstraintLayout(modifier = modifier.padding(10.dp)) {
+        val (boardGrid, boardImage) = createRefs()
 
+        BoardImage(modifier = Modifier.constrainAs(boardImage) {
+            top.linkTo(parent.top)
+            bottom.linkTo(parent.bottom)
+            end.linkTo(parent.end)
+            start.linkTo(parent.start)
+        })
+
+        BoardGrid(grid = grid, onColumnPressed = onColumnPressed, winners = winners, modifier = Modifier.constrainAs(boardGrid) {
+            top.linkTo(boardImage.top)
+            bottom.linkTo(boardImage.bottom)
+            end.linkTo(boardImage.end)
+            start.linkTo(boardImage.start)
+        })
+    }
 }
+
+@Composable
+fun BoardGrid(
+    grid: Array<Array<Disk>>,
+    onColumnPressed: (column: Int) -> Unit,
+    winners: List<Pair<Int, Int>>,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier) {
+        grid.forEachIndexed { index, arrayOfDisks ->
+            BoardColumn(
+                diskArray = arrayOfDisks,
+                columnNumber = index,
+                onColumnPressed = onColumnPressed,
+                winners = winners
+                    .filter { pair -> pair.first == index }
+                    .map { pair -> pair.second },
+                modifier = modifier.decideDiskColumnWidthByPercentage().weight(1f)
+            )
+        }
+        DiskSpacer(isVertical = true, modifier = modifier.weight(0.5f))
+    }
+}
+
+fun Modifier.decideDiskColumnWidthByPercentage(): Modifier =
+    this.layout { measurable, constraints ->
+        val maxWidthAllowedByParent = constraints.maxWidth
+        val placeable = measurable.measure(
+            constraints.copy(minWidth = (maxWidthAllowedByParent / 43)*6)
+        )
+
+        layout(placeable.width, placeable.height) {
+            placeable.parentData
+        }
+    }
 
 @Composable
 fun BoardColumn(
@@ -203,25 +238,23 @@ fun BoardColumn(
 
 @Composable
 fun Disk(disk: Disk, winner: Boolean, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        when (disk) {
-            Disk.Red -> {
-                if (winner) {
-                    DiskImage(id = R.drawable.winner_red_disk)
-                } else {
-                    DiskImage(id = R.drawable.red_disk)
-                }
+    when (disk) {
+        Disk.Red -> {
+            if (winner) {
+                DiskImage(id = R.drawable.winner_red_disk, modifier = modifier)
+            } else {
+                DiskImage(id = R.drawable.red_disk, modifier = modifier)
             }
-            Disk.Yellow -> {
-                if (winner) {
-                    DiskImage(id = R.drawable.winner_yellow_disk)
-                } else {
-                    DiskImage(id = R.drawable.yellow_disk)
-                }
+        }
+        Disk.Yellow -> {
+            if (winner) {
+                DiskImage(id = R.drawable.winner_yellow_disk, modifier = modifier)
+            } else {
+                DiskImage(id = R.drawable.yellow_disk, modifier = modifier)
             }
-            else -> {
-                DiskImage(id = R.drawable.empty_disk, modifier = Modifier.alpha(0f))
-            }
+        }
+        else -> {
+            DiskImage(id = R.drawable.empty_disk, modifier = modifier)
         }
     }
 }
@@ -252,13 +285,17 @@ fun BoardImage(modifier: Modifier = Modifier) {
 @Composable
 fun DiskSpacer(modifier: Modifier = Modifier, isVertical: Boolean = false,) {
     val id = if(isVertical) R.drawable.disk_column_spacer else R.drawable.disk_row_spacer
+    val internalModifier = if(isVertical) {
+        modifier.wrapContentHeight().wrapContentWidth()
+    } else {
+        modifier.fillMaxWidth().wrapContentHeight()
+    }
+
     Image(
         painter = painterResource(id),
         contentScale = ContentScale.Fit,
         contentDescription = null,
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
+        modifier = internalModifier
     )
 }
 
@@ -309,7 +346,30 @@ fun DiskColumnPreview() {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun GridPreview() {
+fun BoardGridPreview() {
+    val array1 = arrayOf(Disk.Red, Disk.Red, Disk.Yellow, Disk.Red, Disk.Empty, Disk.Empty)
+    val array2 = arrayOf(Disk.Red, Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val array3 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val array4 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val array5 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val array6 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val array7 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
+    val grid = arrayOf(array1, array2, array3, array4, array5, array6, array7)
+
+    ConnectAppTheme {
+        Box(Modifier.fillMaxSize()) {
+            BoardGrid(
+                grid = grid,
+                onColumnPressed = { },
+                winners = emptyList()
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun BoardPreview() {
     val array1 = arrayOf(Disk.Red, Disk.Red, Disk.Yellow, Disk.Red, Disk.Empty, Disk.Empty)
     val array2 = arrayOf(Disk.Red, Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
     val array3 = arrayOf(Disk.Red, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty, Disk.Empty)
